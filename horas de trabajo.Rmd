@@ -1,0 +1,229 @@
+---
+title: "Horas de trabajo"
+output:
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    orientation: rows
+---
+
+```{r setup, include=FALSE}
+
+# Define archivo de trabajo
+input_file <- here::here("horas_trabajo.csv")
+
+Sys.setlocale(category = "LC_ALL", locale = "es_ES.UTF-8" )
+
+# Carga de librerías
+library(tidyverse)
+library(plotly)
+library(zoo) #series de tiempo
+library(readr)
+library(RcppRoll)
+library(lubridate) #manejo de fechas
+library(flexdashboard)
+library(viridis)
+
+options("lubridate.week.start" = 1)
+
+db <-
+  data.table::fread(input_file, sep = ";") |>
+  janitor::clean_names() |> 
+  dplyr::mutate(
+    inicio = inicio |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S"),
+    fin = fin |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S")
+  )
+
+trabajos <-  db |>
+  dplyr::mutate(fecha = date(inicio)) |>
+  dplyr::group_by(trabajo, fecha) |>
+  dplyr::summarise(mins = sum(difftime(fin, inicio, units = "min"))) |>
+  dplyr::mutate(
+    dia = lubridate::wday(fecha, label = TRUE, abbr = FALSE),
+    horas = (mins / 60) |> as.numeric(),
+    pomodoros = (mins / 25) |> round() |> as.numeric(),
+  )
+
+diario <- trabajos |>
+  dplyr::group_by(fecha) |>
+  dplyr::summarise(
+    mins = sum(mins),
+    pomodoros = sum(pomodoros),
+    horas = sum(horas)
+  ) |> 
+  dplyr::mutate(
+    dia = wday(fecha, label = TRUE, abbr = FALSE),
+         semana = isoweek(fecha)
+  )
+
+semana <- diario |>
+  dplyr::filter(
+    year(fecha) == year(today()) &
+    isoweek(fecha) == isoweek(today())
+    ) |>
+  dplyr::summarise(
+    mins = sum(mins),
+    pomodoros = sum(pomodoros),
+    horas = sum(horas)
+  )
+
+dia <- diario |>
+  filter(fecha == today()) |>
+  summarise(mins = sum(mins), pomodoros = sum(pomodoros)) |>
+  mutate(horas = (mins / 60) |> as.numeric())
+
+# Funciones
+barras.plot <- \(df, x, y, fill = !!x) {
+  x <- enquo(x)
+  y <- enquo(y)
+  fill <- enquo(fill)
+  
+  ggplot(df, aes(!!x,!!y, fill = !!fill)) +
+    theme_minimal() +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_col(color = "black", size = 0.3) +
+    labs (x = element_blank(),
+          y = element_blank(),
+          title = element_blank()) +
+    theme(legend.position = "none")
+}
+```
+
+## Cabecera
+
+### Horas de trabajo en la semana
+
+```{r}
+  gauge(
+    round(semana$horas),
+    min = 0,
+    max = 40,
+    symbol = "h",
+    gaugeSectors(
+      warning = c(0, 20),
+      success = c(20, 30),
+      danger = c(30, 40)
+    ))
+```
+
+### Pomodoros en la semana
+
+```{r}
+  gauge(
+    round(semana$pomodoros),
+    min = 0,
+    max = 80,
+    symbol = "🍅",
+    gaugeSectors(
+      warning = c(0, 40),
+      success = c(40, 60),
+      danger = c(60, 80)
+    ))
+```
+
+
+### Horas de trabajo en el día
+
+```{r}
+  gauge(
+    round(dia$horas),
+    min = 0,
+    max = 8,
+    symbol = "h",
+    gaugeSectors(
+      warning = c(0, 5),
+      success = c(5, 6),
+      danger = c(6, 8)
+    )
+  )
+```
+
+### Pomodoro de trabajo en el día
+
+```{r}
+  gauge(
+    round(dia$pomodoros),
+    min = 0,
+    max = 16,
+    symbol = "🍅",
+    gaugeSectors(
+      warning = c(0, 8),
+      success = c(8, 12),
+      danger = c(12, 16)
+    )
+  )
+```
+## Todos los días
+
+### Pomodoros
+```{r fig.width=10, fig.height=3}
+pom.plot <- diario |> 
+  filter(fecha >= today() - 90) |> 
+  barras.plot(fecha, pomodoros, pomodoros) +
+  scale_fill_viridis(alpha = 0.6) +
+    geom_hline(yintercept = 8,
+             linetype = "dashed",
+             color = "green3") +
+  geom_hline(yintercept = 12,
+             linetype = "dashed",
+             color = "red")
+  
+ ggplotly(pom.plot)
+```
+
+## Horas por trabajo
+
+### Horas en el último mes
+
+```{r}
+hmes.plot <- trabajos |> 
+  filter(
+    year(fecha) == year(today()) &
+    month(fecha) == month(today())
+    ) |> 
+  group_by(trabajo) |>
+  summarize(pomodoros = sum(pomodoros)) |> 
+  barras.plot(reorder(trabajo, pomodoros), pomodoros) +
+  coord_flip()
+
+ggplotly(hmes.plot)
+```
+
+### En la última semana
+
+```{r}
+hsem.plot <- trabajos |> 
+  filter(
+    year(fecha) == year(today()) &
+    isoweek(fecha) == isoweek(today())
+    )  |> 
+  group_by(trabajo)|>
+  summarize(pomodoros = sum(pomodoros)) |> 
+  barras.plot(reorder(trabajo, pomodoros), pomodoros) + coord_flip()
+
+ggplotly(hsem.plot)
+```
+
+## Horas por día
+
+### Promedio de trabajo por día:
+
+```{r}
+promdia.plot <- diario |>
+  group_by(dia, semana) |>
+  summarise(horas = sum(horas)) |>
+  group_by(dia) |>
+  summarise(horas = mean(horas) |> round(2)) |>
+  barras.plot(dia, horas)
+ggplotly(promdia.plot)
+```
+
+### Trabajo por día en la última semana:
+
+```{r}
+hdia.plot <- diario |>
+  filter(isoweek(fecha) == today() |> isoweek()) |>
+  group_by(dia) |>
+  summarise(horas = sum(horas)) |>
+  barras.plot(dia, horas)
+ggplotly(hdia.plot)
+```
