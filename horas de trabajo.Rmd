@@ -213,9 +213,11 @@ week  |>
 
 ```{r}
 df  |>
-  group_by(wday(inicio)) |>
-  summarise(pomodoros = mean(pomodoros, rm.na = T)) |>
-  plot_barras(`wday(inicio)` |> as.factor(), pomodoros) +
+  group_by(date(inicio), week(inicio), year(inicio)) |>
+  summarise(pomodoros = sum(pomodoros)) |>
+  group_by(wday(`date(inicio)`)) |>
+  summarise(pomodoros = mean(pomodoros, rm.na = T))  |>
+  plot_barras(`wday(\`date(inicio)\`)` |> as.factor(), pomodoros) +
   coord_flip()
 ```
 
