@@ -13,19 +13,25 @@ editor_options:
 # Define archivo de trabajo
 input_file <- here::here("horas_trabajo.csv")
 
+# Imports
+box::use(
+  r/core[...],
+  ./pmdr,
+  dplyr[filter, mutate, group_by, summarise],
+  janitor[clean_names],
+  data.table[fread],
+  lubridate[date, floor_date, ceiling_date, today, week, year, wday],
+  flexdashboard[gauge, gaugeSectors],
+  ggplot2[...]
+)
+
 Sys.setlocale(category = "LC_ALL", locale = "es_ES.UTF-8")
 
-# Carga de librerías
-library(dplyr)
-library(lubridate) #manejo de fechas
-library(plotly)
-library(flexdashboard)
-library(janitor)
 options("lubridate.week.start" = 1) # Establece lunes como inicio de semana
 
 # Carga de datos ------------------------------------------------------------
 
-df <- data.table::fread(input_file, sep = ";")
+df <- fread(input_file, sep = ";")
 
 df <- df |>
   clean_names() |>
@@ -36,45 +42,6 @@ df <- df |>
     horas = (minutos / 60) |> as.numeric(),
     pomodoros = (minutos / 25) |> round() |> as.numeric(),
   )
-
-# Funciones -----------------------------------------------------------------
-
-get_results <- function(df, grouping = NULL) {
-  grouping <- enquo(grouping)
-
-  if (is.null(grouping)) {
-    df  <- df |>
-      summarise(
-        minutos = sum(minutos),
-        pomodoros = sum(pomodoros),
-        horas = sum(horas)
-      )
-    return(df)
-  } else {
-    df <- df |>
-      group_by(!!grouping) |>
-      summarise(
-        minutos = sum(minutos),
-        pomodoros = sum(pomodoros),
-        horas = sum(horas)
-      )
-    return(df)
-  }
-}
-
-plot_barras  <- function(df, category, value) {
-  category <- enquo(category)
-  value    <- enquo(value)
-
-  ggplot(df, aes(!!category, !!value, fill = !!category)) +
-    theme_minimal() +
-    geom_col(color = "black", size = 0.5) +
-    viridis::scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
-    labs(x = element_blank(),
-         y = element_blank(),
-         title = element_blank()) +
-    theme(legend.position = "none") 
-}
 
 # Variables -----------------------------------------------------------------
 
@@ -88,22 +55,22 @@ month_end  <-  ceiling_date(today(), "month")
 day <- df  |>
   filter(date(inicio) == today())
 
-results_day <- day |> 
-  get_results()
+results_day <- day |>
+  pmdr$get_results()
 
 # Tabla de datos correspondiente a la semana actual
 week <- df |>
     filter(inicio >= week_start & inicio <= week_end)
 
 results_week <- week |>
-  get_results()
+  pmdr$get_results()
 
 # Tabla de datos correspondiente al mes actual
 month <- df |>
     filter(inicio >= month_start & inicio <= month_end)
 
 results_month <- month |>
-  get_results()
+  pmdr$get_results()
 ```
 
 ## Cabecera
@@ -177,8 +144,8 @@ results_month <- month |>
 ```{r fig.width = 10, fig.height = 3}
 df |>
   filter(date(inicio) >= today() - 90) |>
-  plot_barras(date(inicio) |> as.factor(), pomodoros) +
-    geom_hline(yintercept = 8,
+  pmdr$plot_barras(date(inicio) |> as.factor(), pomodoros) +
+  geom_hline(yintercept = 8,
              linetype = "dashed",
              color = "green3") +
   geom_hline(yintercept = 12,
@@ -193,7 +160,7 @@ df |>
 month |>
   group_by(trabajo) |>
   summarise(pomodoros = sum(pomodoros)) |>
-  plot_barras(reorder(trabajo, pomodoros), pomodoros) +
+  pmdr$plot_barras(reorder(trabajo, pomodoros), pomodoros) +
   coord_flip()
 ```
 
@@ -203,7 +170,7 @@ month |>
 week  |>
   group_by(trabajo) |>
   summarise(pomodoros = sum(pomodoros)) |>
-  plot_barras(reorder(trabajo, pomodoros), pomodoros) +
+  pmdr$plot_barras(reorder(trabajo, pomodoros), pomodoros) +
   coord_flip()
 ```
 
@@ -217,7 +184,7 @@ df  |>
   summarise(pomodoros = sum(pomodoros)) |>
   group_by(wday(`date(inicio)`)) |>
   summarise(pomodoros = mean(pomodoros, rm.na = T))  |>
-  plot_barras(`wday(\`date(inicio)\`)` |> as.factor(), pomodoros) +
+  pmdr$plot_barras(`wday(\`date(inicio)\`)` |> as.factor(), pomodoros) +
   coord_flip()
 ```
 
@@ -227,6 +194,6 @@ df  |>
 week  |>
   group_by(date(inicio)) |>
   summarise(pomodoros = sum(pomodoros)) |>
-  plot_barras(`date(inicio)` |> as.factor(), pomodoros) +
+  pmdr$plot_barras(`date(inicio)` |> as.factor(), pomodoros) +
   coord_flip()
 ```
