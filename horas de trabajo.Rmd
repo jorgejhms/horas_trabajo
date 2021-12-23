@@ -168,7 +168,7 @@ df  |>
   summarise(pomodoros = sum(pomodoros)) |>
   group_by(wday(`date(inicio)`)) |>
   summarise(pomodoros = mean(pomodoros, rm.na = T))  |>
-  pmdr$plot_barras(`wday(\`date(inicio)\`)` |> as.factor(), pomodoros) +
+  pmdr$plot_trabajos(`wday(\`date(inicio)\`)` |> as.factor(), pomodoros) +
   coord_flip()
 ```
 
@@ -179,6 +179,6 @@ pmdr$plot_barras(week, inicio, pomodoros, T)
 week  |>
   group_by(date(inicio)) |>
   summarise(pomodoros = sum(pomodoros)) |>
-  pmdr$plot_barras(`date(inicio)` |> as.factor(), pomodoros) +
+  pmdr$plot_trabajos(`date(inicio)` |> as.factor(), pomodoros) +
   coord_flip()
 ```
