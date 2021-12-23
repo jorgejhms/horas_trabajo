@@ -142,36 +142,20 @@ results_month <- month |>
 
 ### Pomodoros
 ```{r fig.width = 10, fig.height = 3}
-df |>
-  filter(date(inicio) >= today() - 90) |>
-  pmdr$plot_barras(date(inicio) |> as.factor(), pomodoros) +
-  geom_hline(yintercept = 8,
-             linetype = "dashed",
-             color = "green3") +
-  geom_hline(yintercept = 12,
-             linetype = "dashed",
-             color = "red")
+pmdr$graph_diario(df, date(inicio), pomodoros, 90)
 ```
 
 ## Horas por trabajo
 
 ### Horas en el último mes
 ```{r}
-month |>
-  group_by(trabajo) |>
-  summarise(pomodoros = sum(pomodoros)) |>
-  pmdr$plot_barras(reorder(trabajo, pomodoros), pomodoros) +
-  coord_flip()
+pmdr$plot_trabajos(month, trabajo, pomodoros, T)
 ```
 
 ### En la última semana
 
 ```{r}
-week  |>
-  group_by(trabajo) |>
-  summarise(pomodoros = sum(pomodoros)) |>
-  pmdr$plot_barras(reorder(trabajo, pomodoros), pomodoros) +
-  coord_flip()
+pmdr$plot_trabajos(week, trabajo, pomodoros, T)
 ```
 
 ## Horas por día
@@ -191,6 +175,7 @@ df  |>
 ### Trabajo por día en la última semana:
 
 ```{r}
+pmdr$plot_barras(week, inicio, pomodoros, T)
 week  |>
   group_by(date(inicio)) |>
   summarise(pomodoros = sum(pomodoros)) |>
