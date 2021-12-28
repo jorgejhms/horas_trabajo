@@ -93,3 +93,22 @@ graph_diario <- function(df, category, value, dias) {
   return(g)
   
 }
+
+#' @export
+graph_promedio_dias <- function(df){
+  # Imports
+  box::use(
+    dplyr[group_by, ungroup, summarise, select, rename],
+    lubridate[date, week, year, wday]
+  )
+  
+  # Genera totales de horas trabajadas en cada día
+  test <- df |>
+    group_by(date(inicio), week(inicio), year(inicio)) |>
+    summarise(pomodoros = sum(pomodoros)) |>
+    ungroup() |>
+    select(`date(inicio)`, pomodoros) |>
+    rename(inicio = `date(inicio)`)
+}
+
+
