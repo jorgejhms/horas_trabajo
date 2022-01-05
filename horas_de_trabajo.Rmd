@@ -16,10 +16,10 @@ Sys.setlocale(category = "LC_ALL", locale = "es_ES.UTF-8" )
 # Carga de librerías
 library(tidyverse)
 library(plotly)
-library(zoo) #series de tiempo
+library(zoo)                           # series de tiempo
 library(readr)
 library(RcppRoll)
-library(lubridate) #manejo de fechas
+library(lubridate)                     # manejo de fechas
 library(flexdashboard)
 library(viridis)
 
