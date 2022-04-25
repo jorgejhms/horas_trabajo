@@ -11,7 +11,7 @@ output:
 # Define archivo de trabajo
 input_file <- here::here("horas_trabajo.csv")
 
-Sys.setlocale(category = "LC_ALL", locale = "es_ES.UTF-8" )
+Sys.setlocale(category = "LC_ALL", locale = "es_ES.UTF-8")
 
 # Carga de librerías
 library(tidyverse)
@@ -27,7 +27,7 @@ options("lubridate.week.start" = 1)
 
 db <-
   data.table::fread(input_file, sep = ";") |>
-  janitor::clean_names() |> 
+  janitor::clean_names() |>
   dplyr::mutate(
     inicio = inicio |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S"),
     fin = fin |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S")
@@ -76,7 +76,7 @@ barras.plot <- \(df, x, y, fill = !!x) {
   x <- enquo(x)
   y <- enquo(y)
   fill <- enquo(fill)
-  
+
   ggplot(df, aes(!!x,!!y, fill = !!fill)) +
     theme_minimal() +
     scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
