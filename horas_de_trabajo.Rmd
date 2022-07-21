@@ -6,8 +6,7 @@ output:
     orientation: rows
 ---
 
-```{r setup, include=FALSE}
-
+```r
 # Define archivo de trabajo
 input_file <- here::here("horas_trabajo.csv")
 
