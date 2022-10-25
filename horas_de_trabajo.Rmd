@@ -71,7 +71,7 @@ dia <- diario |>
     mutate(horas = (mins / 60) |> as.numeric())
 
 # Funciones
-barras.plot <- \(df, x, y, fill = !!x) {
+barras_plot <- \(df, x, y, fill = !!x) {
     x <- enquo(x)
     y <- enquo(y)
     fill <- enquo(fill)
@@ -159,9 +159,9 @@ gauge(
 
 ### Pomodoros
 ```{r fig.width=10, fig.height=3}
-pom.plot <- diario |>
+pom_plot <- diario |>
     filter(fecha >= today() - 90) |>
-    barras.plot(fecha, pomodoros, pomodoros) +
+    barras_plot(fecha, pomodoros, pomodoros) +
     scale_fill_viridis(alpha = 0.6) +
     geom_hline(
         yintercept = 6,
@@ -174,7 +174,7 @@ pom.plot <- diario |>
         color = "red"
     )
 
-ggplotly(pom.plot)
+ggplotly(pom_plot)
 ```
 
 ## Horas por trabajo
@@ -182,32 +182,32 @@ ggplotly(pom.plot)
 ### Horas en el último mes
 
 ```{r}
-hmes.plot <- trabajos |>
+hmes_plot <- trabajos |>
     filter(
         year(fecha) == year(today()) &
             month(fecha) == month(today())
     ) |>
     group_by(trabajo) |>
     summarize(pomodoros = sum(pomodoros)) |>
-    barras.plot(reorder(trabajo, pomodoros), pomodoros) +
+    barras_plot(reorder(trabajo, pomodoros), pomodoros) +
     coord_flip()
 
-ggplotly(hmes.plot)
+ggplotly(hmes_plot)
 ```
 
 ### En la última semana
 
 ```{r}
-hsem.plot <- trabajos |>
+hsem_plot <- trabajos |>
     filter(
         year(fecha) == year(today()) &
             isoweek(fecha) == isoweek(today())
     ) |>
     group_by(trabajo) |>
     summarize(pomodoros = sum(pomodoros)) |>
-    barras.plot(reorder(trabajo, pomodoros), pomodoros) + coord_flip()
+    barras_plot(reorder(trabajo, pomodoros), pomodoros) + coord_flip()
 
-ggplotly(hsem.plot)
+ggplotly(hsem_plot)
 ```
 
 ## Horas por día
@@ -215,22 +215,22 @@ ggplotly(hsem.plot)
 ### Promedio de trabajo por día:
 
 ```{r}
-promdia.plot <- diario |>
+promdia_plot <- diario |>
     group_by(dia, semana) |>
     summarise(horas = sum(horas)) |>
     group_by(dia) |>
     summarise(horas = mean(horas) |> round(2)) |>
-    barras.plot(dia, horas)
-ggplotly(promdia.plot)
+    barras_plot(dia, horas)
+ggplotly(promdia_plot)
 ```
 
 ### Trabajo por día en la última semana:
 
 ```{r}
-hdia.plot <- diario |>
+hdia_plot <- diario |>
     filter(isoweek(fecha) == today() |> isoweek()) |>
     group_by(dia) |>
     summarise(horas = sum(horas)) |>
-    barras.plot(dia, horas)
-ggplotly(hdia.plot)
+    barras_plot(dia, horas)
+ggplotly(hdia_plot)
 ```
