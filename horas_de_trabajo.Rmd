@@ -6,7 +6,7 @@ output:
     orientation: rows
 ---
 
-```{r}
+```{r setup}
 # Define archivo de trabajo
 input_file <- here::here("horas_trabajo.csv")
 
@@ -25,12 +25,12 @@ library(viridis)
 options("lubridate.week.start" = 1)
 
 db <-
-    data.table::fread(input_file, sep = ";") |>
-    janitor::clean_names() |>
-    dplyr::mutate(
-        inicio = inicio |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S"),
-        fin = fin |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S")
-    )
+  data.table::fread(input_file, sep = ";") |>
+  janitor::clean_names() |>
+  dplyr::mutate(
+    inicio = inicio |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S"),
+    fin = fin |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S")
+)
 
 trabajos <- db |>
     dplyr::mutate(fecha = date(inicio)) |>
