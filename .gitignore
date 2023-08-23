@@ -55,3 +55,8 @@ horas_de_trabajo.Rmd
 # Vscode folder
 .vscode/
 horas_trabajo.html
+horas_trabajo.csv
+
+# Mac OS
+.DS_Store
+horas_trabajo.csv
