@@ -30,62 +30,62 @@ db <-
   dplyr::mutate(
     inicio = inicio |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S"),
     fin = fin |> as.POSIXct(format = "%d/%m/%Y %H:%M:%S")
-)
+  )
 
 trabajos <- db |>
-    dplyr::mutate(fecha = date(inicio)) |>
-    dplyr::group_by(trabajo, fecha) |>
-    dplyr::summarise(mins = sum(difftime(fin, inicio, units = "min"))) |>
-    dplyr::mutate(
-        dia = lubridate::wday(fecha, label = TRUE, abbr = FALSE),
-        horas = (mins / 60) |> as.numeric(),
-        pomodoros = (mins / 25) |> round() |> as.numeric(),
-    )
+  dplyr::mutate(fecha = date(inicio)) |>
+  dplyr::group_by(trabajo, fecha) |>
+  dplyr::summarise(mins = sum(difftime(fin, inicio, units = "min"))) |>
+  dplyr::mutate(
+    dia = lubridate::wday(fecha, label = TRUE, abbr = FALSE),
+    horas = (mins / 60) |> as.numeric(),
+    pomodoros = (mins / 25) |> round() |> as.numeric(),
+  )
 
 diario <- trabajos |>
-    dplyr::group_by(fecha) |>
-    dplyr::summarise(
-        mins = sum(mins),
-        pomodoros = sum(pomodoros),
-        horas = sum(horas)
-    ) |>
-    dplyr::mutate(
-        dia = wday(fecha, label = TRUE, abbr = FALSE),
-        semana = isoweek(fecha)
-    )
+  dplyr::group_by(fecha) |>
+  dplyr::summarise(
+    mins = sum(mins),
+    pomodoros = sum(pomodoros),
+    horas = sum(horas)
+  ) |>
+  dplyr::mutate(
+    dia = wday(fecha, label = TRUE, abbr = FALSE),
+    semana = isoweek(fecha)
+  )
 
 semana <- diario |>
-    dplyr::filter(
-        year(fecha) == year(today()) &
-            isoweek(fecha) == isoweek(today())
-    ) |>
-    dplyr::summarise(
-        mins = sum(mins),
-        pomodoros = sum(pomodoros),
-        horas = sum(horas)
-    )
+  dplyr::filter(
+    year(fecha) == year(today()) &
+      isoweek(fecha) == isoweek(today())
+  ) |>
+  dplyr::summarise(
+    mins = sum(mins),
+    pomodoros = sum(pomodoros),
+    horas = sum(horas)
+  )
 
 dia <- diario |>
-    filter(fecha == today()) |>
-    summarise(mins = sum(mins), pomodoros = sum(pomodoros)) |>
-    mutate(horas = (mins / 60) |> as.numeric())
+  filter(fecha == today()) |>
+  summarise(mins = sum(mins), pomodoros = sum(pomodoros)) |>
+  mutate(horas = (mins / 60) |> as.numeric())
 
 # Funciones
 barras_plot <- \(df, x, y, fill = !!x) {
-    x <- enquo(x)
-    y <- enquo(y)
-    fill <- enquo(fill)
+  x <- enquo(x)
+  y <- enquo(y)
+  fill <- enquo(fill)
 
-    ggplot(df, aes(!!x, !!y, fill = !!fill)) +
-        theme_minimal() +
-        scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
-        geom_col(color = "black", size = 0.3) +
-        labs(
-            x = element_blank(),
-            y = element_blank(),
-            title = element_blank()
-        ) +
-        theme(legend.position = "none")
+  ggplot(df, aes(!!x, !!y, fill = !!fill)) +
+    theme_minimal() +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_col(color = "black", size = 0.3) +
+    labs(
+      x = element_blank(),
+      y = element_blank(),
+      title = element_blank()
+    ) +
+    theme(legend.position = "none")
 }
 ```
 
@@ -95,15 +95,15 @@ barras_plot <- \(df, x, y, fill = !!x) {
 
 ```{r}
 gauge(
-    round(semana$horas),
-    min = 0,
-    max = 40,
-    symbol = "h",
-    gaugeSectors(
-        warning = c(0, 20),
-        success = c(20, 30),
-        danger = c(30, 40)
-    )
+  round(semana$horas),
+  min = 0,
+  max = 40,
+  symbol = "h",
+  gaugeSectors(
+    warning = c(0, 20),
+    success = c(20, 30),
+    danger = c(30, 40)
+  )
 )
 ```
 
@@ -111,15 +111,15 @@ gauge(
 
 ```{r}
 gauge(
-    round(semana$pomodoros),
-    min = 0,
-    max = 50,
-    symbol = "🍅",
-    gaugeSectors(
-        warning = c(0, 30),
-        success = c(30, 40),
-        danger = c(40, 50)
-    )
+  round(semana$pomodoros),
+  min = 0,
+  max = 50,
+  symbol = "🍅",
+  gaugeSectors(
+    warning = c(0, 30),
+    success = c(30, 40),
+    danger = c(40, 50)
+  )
 )
 ```
 
@@ -128,15 +128,15 @@ gauge(
 
 ```{r}
 gauge(
-    round(dia$horas),
-    min = 0,
-    max = 8,
-    symbol = "h",
-    gaugeSectors(
-        warning = c(0, 4),
-        success = c(4, 5),
-        danger = c(5, 8)
-    )
+  round(dia$horas),
+  min = 0,
+  max = 8,
+  symbol = "h",
+  gaugeSectors(
+    warning = c(0, 4),
+    success = c(4, 5),
+    danger = c(5, 8)
+  )
 )
 ```
 
@@ -144,15 +144,15 @@ gauge(
 
 ```{r}
 gauge(
-    round(dia$pomodoros),
-    min = 0,
-    max = 10,
-    symbol = "🍅",
-    gaugeSectors(
-        warning = c(0, 6),
-        success = c(6, 8),
-        danger = c(8, 10)
-    )
+  round(dia$pomodoros),
+  min = 0,
+  max = 10,
+  symbol = "🍅",
+  gaugeSectors(
+    warning = c(0, 6),
+    success = c(6, 8),
+    danger = c(8, 10)
+  )
 )
 ```
 ## Todos los días
@@ -160,19 +160,19 @@ gauge(
 ### Pomodoros
 ```{r fig.width=10, fig.height=3}
 pom_plot <- diario |>
-    filter(fecha >= today() - 90) |>
-    barras_plot(fecha, pomodoros, pomodoros) +
-    scale_fill_viridis(alpha = 0.6) +
-    geom_hline(
-        yintercept = 6,
-        linetype = "dashed",
-        color = "green3"
-    ) +
-    geom_hline(
-        yintercept = 10,
-        linetype = "dashed",
-        color = "red"
-    )
+  filter(fecha >= today() - 90) |>
+  barras_plot(fecha, pomodoros, pomodoros) +
+  scale_fill_viridis(alpha = 0.6) +
+  geom_hline(
+    yintercept = 6,
+    linetype = "dashed",
+    color = "green3"
+  ) +
+  geom_hline(
+    yintercept = 10,
+    linetype = "dashed",
+    color = "red"
+  )
 
 ggplotly(pom_plot)
 ```
@@ -183,14 +183,14 @@ ggplotly(pom_plot)
 
 ```{r}
 hmes_plot <- trabajos |>
-    filter(
-        year(fecha) == year(today()) &
-            month(fecha) == month(today())
-    ) |>
-    group_by(trabajo) |>
-    summarize(pomodoros = sum(pomodoros)) |>
-    barras_plot(reorder(trabajo, pomodoros), pomodoros) +
-    coord_flip()
+  filter(
+    year(fecha) == year(today()) &
+      month(fecha) == month(today())
+  ) |>
+  group_by(trabajo) |>
+  summarize(pomodoros = sum(pomodoros)) |>
+  barras_plot(reorder(trabajo, pomodoros), pomodoros) +
+  coord_flip()
 
 ggplotly(hmes_plot)
 ```
@@ -199,13 +199,13 @@ ggplotly(hmes_plot)
 
 ```{r}
 hsem_plot <- trabajos |>
-    filter(
-        year(fecha) == year(today()) &
-            isoweek(fecha) == isoweek(today())
-    ) |>
-    group_by(trabajo) |>
-    summarize(pomodoros = sum(pomodoros)) |>
-    barras_plot(reorder(trabajo, pomodoros), pomodoros) + coord_flip()
+  filter(
+    year(fecha) == year(today()) &
+      isoweek(fecha) == isoweek(today())
+  ) |>
+  group_by(trabajo) |>
+  summarize(pomodoros = sum(pomodoros)) |>
+  barras_plot(reorder(trabajo, pomodoros), pomodoros) + coord_flip()
 
 ggplotly(hsem_plot)
 ```
@@ -216,11 +216,11 @@ ggplotly(hsem_plot)
 
 ```{r}
 promdia_plot <- diario |>
-    group_by(dia, semana) |>
-    summarise(horas = sum(horas)) |>
-    group_by(dia) |>
-    summarise(horas = mean(horas) |> round(2)) |>
-    barras_plot(dia, horas)
+  group_by(dia, semana) |>
+  summarise(horas = sum(horas)) |>
+  group_by(dia) |>
+  summarise(horas = mean(horas) |> round(2)) |>
+  barras_plot(dia, horas)
 ggplotly(promdia_plot)
 ```
 
@@ -228,9 +228,9 @@ ggplotly(promdia_plot)
 
 ```{r}
 hdia_plot <- diario |>
-    filter(isoweek(fecha) == today() |> isoweek()) |>
-    group_by(dia) |>
-    summarise(horas = sum(horas)) |>
-    barras_plot(dia, horas)
+  filter(isoweek(fecha) == today() |> isoweek()) |>
+  group_by(dia) |>
+  summarise(horas = sum(horas)) |>
+  barras_plot(dia, horas)
 ggplotly(hdia_plot)
 ```
